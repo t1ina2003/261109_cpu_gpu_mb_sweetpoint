@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="用台灣零件報價與第三方實測比較 CPU、GPU 和整機配置。">
+  <meta name="theme-color" content="#111b1a">
+  <title>甜蜜點｜台灣桌機選配</title>
+  <link rel="stylesheet" href="./style.css">
+  <script defer src="./data.js"></script>
+  <script defer src="./model.js"></script>
+  <script defer src="./app.js"></script>
+</head>
+<body>
+  <header class="hero">
+    <div class="shell">
+      <div class="top"><span class="brand"><i></i> 硬體選配研究</span><span class="edition">TW / 2026.11</span></div>
+      <div class="hero-content">
+        <p class="eyebrow">桌機效能 × 預算 × 功耗</p>
+        <h1>甜蜜點<span>.</span></h1>
+        <p class="lead">把預算花在你用得到的效能。用台灣報價和第三方實測，比較遊戲、工作與用電的取捨。</p>
+      </div>
+      <nav aria-label="頁面導覽"><a href="#planner">整機選配</a><a href="#rankings">零件排名</a><a href="#method">資料與方法</a></nav>
+    </div>
+  </header>
+  <main class="shell">
+    <section id="planner" aria-labelledby="planner-title">
+      <div class="section-heading"><p class="eyebrow">01 / BUILD LAB</p><h2 id="planner-title">找整機甜蜜點</h2></div>
+      <div class="workspace">
+        <form id="settings" class="panel settings">
+          <h3>你的使用條件</h3>
+          <div class="preset-list" aria-label="快速設定">
+            <button type="button" data-preset="mixed">混合用途</button>
+            <button type="button" data-preset="budget">省預算</button>
+            <button type="button" data-preset="gaming">2K 遊戲</button>
+            <button type="button" data-preset="work">CUDA／多核</button>
+          </div>
+          <div class="fields">
+            <label>整機預算（NT$）<input name="budget" type="number" min="0" max="500000" step="500" inputmode="numeric" value="65000"></label>
+            <label>同時負載功耗上限<select name="cap"><option value="9999">不限</option><option value="250">250 W</option><option value="300">300 W</option><option value="350">350 W</option><option value="400">400 W</option><option value="450">450 W</option><option value="500">500 W</option><option value="650">650 W</option><option value="850">850 W</option></select></label>
+            <label>遊戲解析度<select name="resolution"><option value="0">1080p</option><option value="1" selected>1440p / 2K</option><option value="2">2160p / 4K</option></select></label>
+            <label>最低 VRAM<select name="vram"><option value="8">8 GB</option><option value="12">12 GB</option><option value="16">16 GB</option></select></label>
+            <label>系統記憶體<select name="ram" id="ram"></select></label>
+            <label>SSD 容量<select name="ssd" id="ssd"></select></label>
+            <label>CPU 平台<select name="platform"><option value="">全部平台</option><option>AM5</option><option>LGA1851</option></select></label>
+            <label>主機板<select name="board" id="board"></select></label>
+            <label>指定 CPU<select name="cpu" id="cpu"></select></label>
+            <label>指定 GPU<select name="gpu" id="gpu"></select></label>
+          </div>
+          <div class="sliders">
+            <label for="game">遊戲權重 <output id="game-value">60%</output></label><input id="game" name="game" type="range" min="0" max="100" step="5" value="60">
+            <label for="rt">遊戲內的光追權重 <output id="rt-value">20%</output></label><input id="rt" name="rt" type="range" min="0" max="100" step="5" value="20">
+            <label for="cost">價格懲罰 <output id="cost-value">35%</output></label><input id="cost" name="cost" type="range" min="0" max="100" step="5" value="35">
+            <label for="power">功耗懲罰 <output id="power-value">25%</output></label><input id="power" name="power" type="range" min="0" max="100" step="5" value="25">
+          </div>
+          <label class="check"><input name="cuda" type="checkbox"> 軟體需要 CUDA，只列 GeForce</label>
+          <label class="check"><input name="bundle" type="checkbox" checked> 納入搭機限定價</label>
+          <details><summary>輸入自己的報價</summary><p class="small">可覆寫 CPU、GPU 與其他零件的單價。留空時使用通路快照。</p><label class="quote-part">零件<select id="quote-part"></select></label><label class="quote-part">單價（NT$）<input id="quote-price" type="number" min="1" max="500000" placeholder="使用快照" inputmode="numeric"></label><button type="button" id="clear-quotes">清除所有自訂報價</button><p class="small" id="quote-count"></p></details>
+        </form>
+        <div class="results">
+          <article class="pick panel" aria-live="polite" id="winner"></article>
+          <article class="panel chart-panel">
+            <div class="chart-heading"><div><p class="eyebrow">TRADE-OFF MAP</p><h3>整機甜蜜點圖</h3></div><label>橫軸<select id="axis"><option value="price">整機價格</option><option value="watts">估算功耗</option></select></label></div>
+            <p class="small">縱軸是混合效能指數。點擊圓點或下方方案可查看清單。</p>
+            <div id="chart"></div>
+            <div class="legend"><span><i class="best"></i>目前推薦</span><span><i class="edge"></i>三目標前緣</span><span><i></i>其他可行組合</span></div>
+            <div id="chart-selection" class="selection" aria-live="polite"></div>
+          </article>
+          <article class="panel"><h3>同預算內的選擇</h3><div id="alternatives" class="alternatives"></div></article>
+        </div>
+      </div>
+    </section>
+    <section id="rankings" aria-labelledby="rankings-title">
+      <div class="section-heading"><p class="eyebrow">02 / BENCHMARKS</p><h2 id="rankings-title">CPU 與 GPU 排名</h2></div>
+      <article class="panel">
+        <div class="rank-controls">
+          <label>零件<select id="rank-kind"><option value="cpu">CPU</option><option value="gpu">GPU</option></select></label>
+          <label>基準<select id="rank-bench"></select></label>
+          <label>排序<select id="rank-order"><option value="performance">效能</option><option value="value">效能／千元</option><option value="efficiency">效能／瓦</option><option value="price">價格從低到高</option></select></label>
+        </div>
+        <p class="small" id="rank-note"></p><div id="rank-chart"></div><div id="rank-table" class="table-wrap" tabindex="0" role="region" aria-label="零件完整數據，可橫向捲動"></div>
+      </article>
+    </section>
+    <section id="method" aria-labelledby="method-title">
+      <div class="section-heading"><p class="eyebrow">03 / RESEARCH NOTES</p><h2 id="method-title">資料與方法</h2></div>
+      <div class="panel notes" id="sources"></div>
+    </section>
+  </main>
+  <footer class="shell footer">甜蜜點 / 台灣桌機選配 · 2026 年 11 月</footer>
+</body>
+</html>
