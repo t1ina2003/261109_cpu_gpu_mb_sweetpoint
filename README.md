@@ -16,3 +16,7 @@
 開啟 `docs/index.html`，或在專案目錄執行 `python -m http.server 8000 --directory docs`。模型測試使用 `node --test`。
 
 資料與來源位於 `docs/data.js`，配對與排名模型位於 `docs/model.js`。
+
+## 版本
+
+**1.0.0 · 2026-11-09**　首次發行，內含 2026 年 11 月台灣選購樣本、手機版選配及效能排名。
