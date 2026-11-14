@@ -191,6 +191,7 @@ function renderPlanner() {
       + " · " + money(build.price) + " · " + build.watts + " W · " + num(build.index, 1) + " 點</small></button>").join("")
     : '<p class="small">' + (result.winner ? "目前前緣只有推薦方案。" : "放寬條件後即可比較方案。") + "</p>";
   chart();
+  document.dispatchEvent(new Event("planner-updated"));
 }
 
 const benchmarks = {

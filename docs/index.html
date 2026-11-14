@@ -10,6 +10,7 @@
   <script defer src="./data.js"></script>
   <script defer src="./model.js"></script>
   <script defer src="./app.js"></script>
+  <script defer src="./investment.js"></script>
 </head>
 <body>
   <header class="hero">
@@ -20,10 +21,41 @@
         <h1>甜蜜點<span>.</span></h1>
         <p class="lead">把預算花在你用得到的效能。用台灣報價和第三方實測，比較遊戲、工作與用電的取捨。</p>
       </div>
-      <nav aria-label="頁面導覽"><a href="#planner">整機選配</a><a href="#rankings">零件排名</a><a href="#method">資料與方法</a></nav>
+
     </div>
   </header>
+  <nav class="page-tabs shell" aria-label="頁面分頁">
+    <a href="#investment" aria-current="page">投資曲線</a><a href="#planner">選配</a>
+    <a href="#upgrades">升級</a><a href="#builds">方案</a><a href="#rankings">排名</a><a href="#method">方法</a>
+  </nav>
   <main class="shell">
+    <section id="investment" aria-labelledby="investment-title">
+      <article class="panel investment-panel">
+        <h2 id="investment-title">預算多一點，能快多少？</h2>
+        <p id="balanced-note" class="small"></p>
+        <div class="investment-controls">
+          <label>使用年數<input id="years" type="number" min="1" max="15" value="5" inputmode="numeric"></label>
+          <label>每日等效滿載（小時）<input id="hours" type="number" min="0" max="24" step="0.5" value="3" inputmode="decimal"></label>
+          <label>每度電（NT$）<input id="rate" type="number" min="0" max="30" step="0.1" value="4" inputmode="decimal"></label>
+        </div>
+        <div id="investment-plot"></div>
+        <div class="legend investment-legend"><span><i class="edge"></i>混合效能〔左軸〕</span><span><i class="best"></i>持有總成本〔右軸〕</span><span><i></i>購機價〔右軸〕</span></div>
+        <label class="tier-label">查看預算帶<select id="tier"></select></label>
+        <p class="small" id="curve-value"></p>
+        <div id="investment-result" aria-live="polite"></div>
+        <details><summary>電費與曲線怎麼算</summary><p class="small">電費＝整機估算瓦數 ÷ 1,000 × 每日等效滿載小時 × 365 × 年數 × 每度電價。NT$4／度是可調的試算值。持有總成本為購機價加上電費，未計待機、維修與殘值。效能與金額分用兩軸，線條交會僅是視覺位置。各預算點顯示符合目前選配限制的最高效能方案。</p></details>
+      </article>
+    </section>
+    <section id="upgrades" aria-label="零件升級">
+      <article class="panel upgrade-panel">
+        <h3>把錢加在哪個零件？</h3>
+        <div class="upgrade-controls">
+          <label>比較項目<select id="upgrade-kind"><option value="cpu">CPU</option><option value="gpu">GPU</option><option value="ram">RAM</option><option value="board">主機板</option><option value="ssd">SSD</option></select></label>
+          <label>替換零件<select id="upgrade-option"></select></label>
+        </div>
+        <div id="upgrade-result" aria-live="polite"></div>
+      </article>
+    </section>
     <section id="planner" aria-labelledby="planner-title">
       <div class="section-heading"><p class="eyebrow">01 / BUILD LAB</p><h2 id="planner-title">找整機甜蜜點</h2></div>
       <div class="workspace">
@@ -35,7 +67,12 @@
             <button type="button" data-preset="gaming">2K 遊戲</button>
             <button type="button" data-preset="work">CUDA／多核</button>
           </div>
-          <div class="fields">
+          <div class="settings-groups" aria-label="選配設定分類">
+            <button type="button" data-settings-group="basic" aria-pressed="true">預算與零件</button>
+            <button type="button" data-settings-group="weights" aria-pressed="false">用途與權重</button>
+            <button type="button" data-settings-group="quotes" aria-pressed="false">自訂報價</button>
+          </div>
+          <div data-settings-panel="basic" class="fields">
             <label>整機預算（NT$）<input name="budget" type="number" min="0" max="500000" step="500" inputmode="numeric" value="65000"></label>
             <label>同時負載功耗上限<select name="cap"><option value="9999">不限</option><option value="250">250 W</option><option value="300">300 W</option><option value="350">350 W</option><option value="400">400 W</option><option value="450">450 W</option><option value="500">500 W</option><option value="650">650 W</option><option value="850">850 W</option></select></label>
             <label>遊戲解析度<select name="resolution"><option value="0">1080p</option><option value="1" selected>1440p / 2K</option><option value="2">2160p / 4K</option></select></label>
@@ -47,6 +84,7 @@
             <label>指定 CPU<select name="cpu" id="cpu"></select></label>
             <label>指定 GPU<select name="gpu" id="gpu"></select></label>
           </div>
+          <div data-settings-panel="weights" hidden>
           <div class="sliders">
             <label for="game">遊戲權重 <output id="game-value">60%</output></label><input id="game" name="game" type="range" min="0" max="100" step="5" value="60">
             <label for="rt">遊戲內的光追權重 <output id="rt-value">20%</output></label><input id="rt" name="rt" type="range" min="0" max="100" step="5" value="20">
@@ -55,8 +93,13 @@
           </div>
           <label class="check"><input name="cuda" type="checkbox"> 軟體需要 CUDA，只列 GeForce</label>
           <label class="check"><input name="bundle" type="checkbox" checked> 納入搭機限定價</label>
-          <details><summary>輸入自己的報價</summary><p class="small">可覆寫 CPU、GPU 與其他零件的單價。留空時使用通路快照。</p><label class="quote-part">零件<select id="quote-part"></select></label><label class="quote-part">單價（NT$）<input id="quote-price" type="number" min="1" max="500000" placeholder="使用快照" inputmode="numeric"></label><button type="button" id="clear-quotes">清除所有自訂報價</button><p class="small" id="quote-count"></p></details>
+          </div>
+          <details data-settings-panel="quotes" hidden open><summary>輸入自己的報價</summary><p class="small">可覆寫 CPU、GPU 與其他零件的單價。留空時使用通路快照。</p><label class="quote-part">零件<select id="quote-part"></select></label><label class="quote-part">單價（NT$）<input id="quote-price" type="number" min="1" max="500000" placeholder="使用快照" inputmode="numeric"></label><button type="button" id="clear-quotes">清除所有自訂報價</button><p class="small" id="quote-count"></p></details>
+          <a class="action-link" href="#investment">看更新後的投資曲線</a>
         </form>
+      </div>
+    </section>
+    <section id="builds" aria-label="整機方案">
         <div class="results">
           <article class="pick panel" aria-live="polite" id="winner"></article>
           <article class="panel chart-panel">
@@ -68,7 +111,6 @@
           </article>
           <article class="panel"><h3>同預算內的選擇</h3><div id="alternatives" class="alternatives"></div></article>
         </div>
-      </div>
     </section>
     <section id="rankings" aria-labelledby="rankings-title">
       <div class="section-heading"><p class="eyebrow">02 / BENCHMARKS</p><h2 id="rankings-title">CPU 與 GPU 排名</h2></div>
