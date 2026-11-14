@@ -108,7 +108,22 @@ const SweetModel = (() => {
       absoluteMinimum: cheapest[0]?.price };
   }
 
-  return { defaults, presets, effectivePrice, isCompatible, performance, buildCandidates, selectBuilds };
+  function ownership(build, years, hours, rate) {
+    const annualEnergy = build.watts * hours * 365 / 1000;
+    const electricity = annualEnergy * years * rate;
+    return { annualEnergy, electricity, total: build.price + electricity };
+  }
+
+  function budgetCurve(candidates, settings, budgets) {
+    const eligible = candidates.filter(build => build.watts <= settings.cap)
+      .sort((a, b) => b.index - a.index || a.price - b.price || a.watts - b.watts);
+    return [...new Set(budgets)].sort((a, b) => a - b).map(budget => ({
+      budget,
+      build: eligible.find(build => build.price <= budget),
+    }));
+  }
+
+  return { ownership, budgetCurve, defaults, presets, effectivePrice, isCompatible, performance, buildCandidates, selectBuilds };
 })();
 
 if (typeof module !== "undefined") module.exports = SweetModel;

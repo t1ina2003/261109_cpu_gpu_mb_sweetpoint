@@ -71,3 +71,20 @@ test("impossible budget exposes the minimum cost for the selected conditions", (
   assert.ok(result.minimumPrice > 1);
   assert.equal(result.minimumWatts, undefined);
 });
+
+test("ownership adds estimated electricity without changing the purchase price", () => {
+  assert.deepEqual(model.ownership({ watts: 400, price: 50000 }, 5, 3, 4), {
+    annualEnergy: 438, electricity: 8760, total: 58760,
+  });
+  assert.equal(model.ownership({ watts: 400, price: 50000 }, 5, 0, 4).total, 50000);
+});
+
+test("budget curve selects the fastest eligible configuration at each budget", () => {
+  const candidates = [
+    { price: 40000, index: 80, watts: 300 },
+    { price: 50000, index: 95, watts: 370 },
+    { price: 45000, index: 110, watts: 450 },
+  ];
+  const rows = model.budgetCurve(candidates, { cap: 400 }, [50000, 35000, 45000, 50000]);
+  assert.deepEqual(rows.map(row => row.build?.index), [undefined, 80, 95]);
+});
